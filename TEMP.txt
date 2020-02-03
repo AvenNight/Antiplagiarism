@@ -1,0 +1,67 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Antiplagiarism
+{
+    public static class LongestCommonSubsequenceCalculator
+    {
+        public static List<string> Calculate(List<string> first, List<string> second)
+        {
+            var opt = CreateOptimizationTable(first, second);
+            return RestoreAnswer(opt, first, second);
+        }
+
+        private static int[,] CreateOptimizationTable(List<string> first, List<string> second)
+        {
+            var opt = new int[first.Count + 1, second.Count + 1];
+
+            for (int i = 1; i <= first.Count; i++)
+                for (int j = 1; j <= second.Count; j++)
+                {
+                    if (first[i - 1] == second[j - 1])
+                    {
+                        opt[i, j] = opt[i - 1, j - 1] + 1;
+                    }
+                    else
+                    {
+                        opt[i, j] = Math.Max(Math.Max(
+                            opt[i - 1, j],
+                            opt[i, j - 1]),
+                            opt[i - 1, j - 1]);
+                    }
+                }
+
+            return opt;
+        }
+
+        private static List<string> RestoreAnswer(int[,] opt, List<string> first, List<string> second)
+        {
+            var result = new List<string>();
+            var max = opt[opt.GetLength(0) - 1, opt.GetLength(1) - 1];
+            var indexesOutI = new List<int>();
+            var indexesOutJ = new List<int>();
+
+            for (int m = max; m > 0; m--)
+            {
+                var index = FindIndex(opt, m, indexesOutI, indexesOutJ);
+                indexesOutI.Add(index.i);
+                indexesOutJ.Add(index.j);
+                if (index.i < 1) break;
+                result.Add(first[index.i - 1]);
+            }
+
+            result.Reverse();
+            return result;
+        }
+
+        private static (int i, int j) FindIndex(int[,] opt, int value, List<int> indexesOutI, List<int> indexesOutJ)
+        {
+            for (int i = 0; i < opt.GetLength(0); i++)
+                for (int j = 0; j < opt.GetLength(1); j++)
+                    if (opt[i, j] == value && !indexesOutI.Contains((i)) && !indexesOutJ.Contains((j)))
+                        return (i, j);
+            return (-1, -1);
+        }
+    }
+}
